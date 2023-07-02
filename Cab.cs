@@ -89,8 +89,8 @@ namespace OnlineCab
         }
 
         void OnKeyUp(object sender, KeyEventArgs e)
-        {
-            
+        { 
+
         }
 
         void OnKeyDown(object sender, KeyEventArgs e)
@@ -200,7 +200,7 @@ namespace OnlineCab
 
         internal static void HandleCleanup ()
         {
-            if (cabAction == CabAction.GetPlayer && (Game.GameTime >= cabTimeOut || Game.Player.Character.Position.DistanceTo(pickupLocation) > 100.0f))
+            if (cabAction == CabAction.GetPlayer && (Game.GameTime >= cabTimeOut || Game.Player.Character.Position.DistanceTo(cab.Position) > 50.0f))
             {
                 cabActive = false;
                 canRush = false;
@@ -244,7 +244,7 @@ namespace OnlineCab
                 cab.MarkAsNoLongerNeeded();
                 driver.MarkAsNoLongerNeeded();
             }
-            if (cab != null && driver != null)
+            if (cabAction != CabAction.SpwanCab)
             {
                 if (cab.IsConsideredDestroyed || cab.EngineHealth == 0)
                 {
@@ -288,6 +288,27 @@ namespace OnlineCab
                     cab.MarkAsNoLongerNeeded();
                     driver.MarkAsNoLongerNeeded();
                 }
+            }
+            if (Game.Player.Character.IsDead || Function.Call<bool>(Hash.IS_PLAYER_BEING_ARRESTED, Game.Player, 0))
+            {
+                cabActive = false;
+                canRush = false;
+                isRushed = false;
+                cab.AttachedBlip.Delete();
+                destinationBlip?.Delete();
+
+                driver.Task.ClearAll();
+                driver.Task.CruiseWithVehicle(cab, 15f, DrivingStyle.Normal);
+
+                cab.MarkAsNoLongerNeeded();
+                driver.MarkAsNoLongerNeeded();
+
+                GTA.UI.Notification.Show(
+                    GTA.UI.NotificationIcon.PegasusDelivery,
+                    "Pegasus Cab",
+                    "Ride Update",
+                    "Your ride had to be canceled. You won't be charged for the ride."
+                );
             }
 
         }
@@ -456,6 +477,12 @@ namespace OnlineCab
                             cab.Mods.SecondaryColor = VehicleColor.MetallicBlack;
                             cab.Mods.PearlescentColor = VehicleColor.MetallicBlack;
                         }
+                        if (cabTypes[currentCabType].armoured)
+                        {
+                            cab.CanTiresBurst = false;
+                            cab.Mods.InstallModKit();
+                            Function.Call(Hash.SET_VEHICLE_MOD, cab, 16, 4, false);
+                        }
 
                         cab.AddBlip();
                         cab.AttachedBlip.Sprite = BlipSprite.Cab;
@@ -471,6 +498,7 @@ namespace OnlineCab
                         driver.SetIntoVehicle(cab, VehicleSeat.Driver);
                         driver.CanBeDraggedOutOfVehicle = false;
                         driver.CanBeKnockedOffBike = false;
+                        if (cab.IsMotorcycle) driver.GiveHelmet(false, Helmet.RegularMotorcycleHelmet, 0);
 
                         Function.Call(Hash.SET_DRIVER_ABILITY, driver, 0.75f);
 

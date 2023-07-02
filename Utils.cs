@@ -29,7 +29,8 @@ namespace OnlineCab
                     description = node.Attributes["description"].Value,
                     baseFare = int.Parse(node.Attributes["baseFare"].Value, CultureInfo.InvariantCulture),
                     fareMultiplier = int.Parse(node.Attributes["fareMultiplier"].Value, CultureInfo.InvariantCulture),
-                    black = Convert.ToBoolean(node.Attributes["black"].Value)
+                    black = Convert.ToBoolean(node.Attributes["black"].Value),
+                    armoured = Convert.ToBoolean(node.Attributes["armoured"].Value)
                 };
 
                 XmlNodeList vehicleNodes = node.SelectNodes("Vehicles/Vehicle");
@@ -66,6 +67,7 @@ namespace OnlineCab
             public int baseFare;
             public int fareMultiplier;
             public bool black;
+            public bool armoured;
             public List<string> vehicles = new List<string>();
             public List<string> drivers = new List<string>();
         }
